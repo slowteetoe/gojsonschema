@@ -415,7 +415,7 @@ func TestContentAfterBody(t *testing.T) {
 				t.Errorf("should have failed, there was extra content after the body")
 			}
 
-			assert.Equal(t, err.Error(), "Unexpected content after JSON value")
+			assert.Equal(t, "Unexpected content after JSON value", err.Error())
 		})
 	}
 
