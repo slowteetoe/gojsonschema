@@ -380,3 +380,43 @@ func TestIncorrectRef(t *testing.T) {
 	assert.Nil(t, s)
 	assert.Equal(t, "Object has no key 'fail'", err.Error())
 }
+
+var invalidExtraContentTests = []struct {
+	descr, input string
+}{
+	{"extra valid json object", `{"name": "valid"} {"name": "extra"}`},
+	{"extra json object, does not conform to schema", `{"name": "valid"} {"foo": "bar"}`},
+	{"extra non-json content", `{"name": "valid"} //asdfa`},
+}
+
+func TestContentAfterBody(t *testing.T) {
+
+	schemaLoader := NewStringLoader(`{
+		"type": "object",
+		"properties": {
+		  "name": {
+			"type": "string"
+		  }
+		},
+		"required": ["name"]
+	  }`)
+
+	s, err := NewSchema(schemaLoader)
+	if err != nil {
+		t.Errorf("Got error: %s", err.Error())
+	}
+
+	for _, tt := range invalidExtraContentTests {
+		t.Run(tt.descr, func(t *testing.T) {
+			documentLoader := NewStringLoader(tt.input)
+
+			_, err = s.Validate(documentLoader)
+			if err == nil {
+				t.Errorf("should have failed, there was extra content after the body")
+			}
+
+			assert.Equal(t, err.Error(), "Unexpected content after JSON value")
+		})
+	}
+
+}

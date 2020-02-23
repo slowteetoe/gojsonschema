@@ -381,6 +381,10 @@ func decodeJSONUsingNumber(r io.Reader) (interface{}, error) {
 		return nil, err
 	}
 
+	if decoder.More() {
+		return nil, errors.New("Unexpected content after JSON value")
+	}
+
 	return document, nil
 
 }
